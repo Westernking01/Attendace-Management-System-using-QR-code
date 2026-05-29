@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  password   String   // hashed password
+  role       String   // "ADMIN", "LECTURER", "STUDENT"
+  name       String
+  avatar     String?  // initials or avatar URL
+  isActive   Boolean  @default(true)
+  studentId  String?  @unique // link to Student if role=STUDENT
+  student    Student? @relation(fields: [studentId], references: [id])
+  lecturerId String?  @unique // link to Lecturer if role=LECTURER
+  lecturer   Lecturer? @relation(fields: [lecturerId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Department {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  code      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  students  Student[]
+  lecturers Lecturer[]
+  courses   Course[]
+}
+
+model Student {
+  id           String     @id @default(cuid())
+  matricNo     String     @unique
+  firstName    String
+  lastName     String
+  email        String     @unique
+  phone        String?
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+  level        String     // e.g. "ND1", "ND2", "HND1", "HND2"
+  qrCodeData   String     @unique // unique QR code identifier
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  enrollments  CourseEnrollment[]
+  attendance   AttendanceRecord[]
+  user         User?
+}
+
+model Lecturer {
+  id           String     @id @default(cuid())
+  staffId      String     @unique
+  firstName    String
+  lastName     String
+  email        String     @unique
+  phone        String?
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  courses      Course[]
+  sessions     AttendanceSession[]
+  user         User?
+}
+
+model Course {
+  id           String     @id @default(cuid())
+  code         String     @unique
+  title        String
+  unit         Int        // credit units
+  semester     String     // e.g. "First", "Second"
+  session      String     // e.g. "2024/2025"
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+  lecturerId   String?
+  lecturer     Lecturer?  @relation(fields: [lecturerId], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  enrollments  CourseEnrollment[]
+  sessions     AttendanceSession[]
+}
+
+model CourseEnrollment {
+  id         String   @id @default(cuid())
+  courseId   String
+  studentId  String
+  course     Course   @relation(fields: [courseId], references: [id])
+  student    Student  @relation(fields: [studentId], references: [id])
+  enrolledAt DateTime @default(now())
+
+  @@unique([courseId, studentId])
+}
+
+model AttendanceSession {
+  id         String   @id @default(cuid())
+  courseId   String
+  course     Course   @relation(fields: [courseId], references: [id])
+  lecturerId String
+  lecturer   Lecturer @relation(fields: [lecturerId], references: [id])
+  date       DateTime
+  startTime  DateTime
+  endTime    DateTime?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  records    AttendanceRecord[]
+}
+
+model AttendanceRecord {
+  id        String   @id @default(cuid())
+  sessionId String
+  session   AttendanceSession @relation(fields: [sessionId], references: [id])
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id])
+  markedAt  DateTime @default(now())
+  method    String   @default("qr_scan") // qr_scan, manual
+
+  @@unique([sessionId, studentId])
+}

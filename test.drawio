@@ -1,0 +1,22 @@
+<mxfile host="65bd71144e">
+    <diagram id="UV2EmlkyNxvH9uWF1BT6" name="Page-1">
+        <mxGraphModel dx="1066" dy="645" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" background="none" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="6" value="Actor" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="140" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="LOGIN" style="ellipse;html=1;whiteSpace=wrap;shadow=0;" vertex="1" parent="1">
+                    <mxGeometry x="238" y="80" width="162" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" style="edgeStyle=none;html=1;entryX=0.047;entryY=0.657;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="6" target="7">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="BALANCE" style="ellipse;html=1;whiteSpace=wrap;" vertex="1" parent="1">
+                    <mxGeometry x="240" y="160" width="160" height="40" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
