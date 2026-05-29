@@ -4,7 +4,6 @@ import bcrypt from 'bcryptjs'
 
 export async function POST() {
   try {
-    // Clear existing data (in reverse dependency order)
     await db.attendanceRecord.deleteMany()
     await db.attendanceSession.deleteMany()
     await db.courseEnrollment.deleteMany()
@@ -14,10 +13,8 @@ export async function POST() {
     await db.student.deleteMany()
     await db.department.deleteMany()
 
-    // Hash admin password
     const adminPassword = await bcrypt.hash('Admin123', 10)
 
-    // Create departments (sequential to avoid pgbouncer issues)
     const departments = []
     const deptData = [
       { name: 'Computer Science', code: 'CS' },
@@ -35,7 +32,6 @@ export async function POST() {
       departments.push(department)
     }
 
-    // Create admin user
     await db.user.create({
       data: {
         email: 'Admin@gmail.com',
@@ -49,13 +45,8 @@ export async function POST() {
 
     return NextResponse.json({
       message: 'Database seeded successfully',
-      summary: {
-        departments: departments.length,
-        adminCreated: true,
-      },
-      credentials: {
-        admin: { email: 'Admin@gmail.com', password: 'Admin123' },
-      },
+      summary: { departments: departments.length, adminCreated: true },
+      credentials: { admin: { email: 'Admin@gmail.com', password: 'Admin123' } },
     })
   } catch (error) {
     console.error('Failed to seed database:', error)

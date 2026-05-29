@@ -58,18 +58,17 @@ export async function POST(
     }
 
     // Create enrollment records
-    const enrollments = await db.$transaction(
-      newStudentIds.map((studentId: string) =>
-        db.courseEnrollment.create({
-          data: { courseId: id, studentId },
-          include: {
-            student: { include: { department: true } },
-            course: { include: { department: true } },
-          },
-        })
-      )
-    )
-
+ const enrollments = []
+for (const studentId of newStudentIds) {
+  const enrollment = await db.courseEnrollment.create({
+    data: { courseId: id, studentId },
+    include: {
+      student: { include: { department: true } },
+      course: { include: { department: true } },
+    },
+  })
+  enrollments.push(enrollment)
+}
     return NextResponse.json(
       {
         message: `${enrollments.length} student(s) enrolled successfully`,
