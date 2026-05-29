@@ -100,19 +100,13 @@ function AdminDashboard() {
             fetch("/api/reports"),
           ])
 
-        const studentsRaw = await studentsRes.json()
-const lecturersRaw = await lecturersRes.json()
-const coursesRaw = await coursesRes.json()
-const attendanceRaw = await attendanceRes.json()
-const reportsData = await reportsRes.json()
+        const students: Student[] = await studentsRes.json()
+        const lecturers: Lecturer[] = await lecturersRes.json()
+        const coursesData: Course[] = await coursesRes.json()
+        const attendanceData: AttendanceSession[] = await attendanceRes.json()
+        const reportsData = await reportsRes.json()
 
-// Safely handle API responses - ensure arrays even if API returns errors
-const students: Student[] = Array.isArray(studentsRaw) ? studentsRaw : []
-const lecturers: Lecturer[] = Array.isArray(lecturersRaw) ? lecturersRaw : []
-const coursesData: Course[] = Array.isArray(coursesRaw) ? coursesRaw : []
-const attendanceData: AttendanceSession[] = Array.isArray(attendanceRaw) ? attendanceRaw : []
-
-const activeSessions = attendanceData.filter((s) => s.isActive).length
+        const activeSessions = attendanceData.filter((s) => s.isActive).length
 
         setStats({
           students: students.length,
@@ -122,7 +116,7 @@ const activeSessions = attendanceData.filter((s) => s.isActive).length
         })
         setCourses(coursesData)
         setSessions(attendanceData)
-        const reportRecords: ReportRecord[] = Array.isArray(reportsData?.records) ? reportsData.records : []
+        const reportRecords: ReportRecord[] = reportsData.records || []
         setRecentRecords(reportRecords.slice(0, 5))
         setAllRecords(reportRecords)
       } catch (err) {
@@ -409,12 +403,8 @@ function LecturerDashboard() {
           fetch(`/api/courses${lecturerParam}`),
           fetch("/api/attendance"),
         ])
-        const coursesRaw = await coursesRes.json()
-const attendanceRaw = await attendanceRes.json()
-
-// Safely handle API responses - ensure arrays even if API returns errors
-const coursesData: Course[] = Array.isArray(coursesRaw) ? coursesRaw : []
-const attendanceData: AttendanceSession[] = Array.isArray(attendanceRaw) ? attendanceRaw : []
+        const coursesData: Course[] = await coursesRes.json()
+        const attendanceData: AttendanceSession[] = await attendanceRes.json()
 
         // Filter sessions to only show this lecturer's sessions
         const mySessions = user?.lecturerId

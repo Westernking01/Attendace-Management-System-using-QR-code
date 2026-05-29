@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs'
 
 export async function POST() {
   try {
+    // Clear existing data (in reverse dependency order)
     await db.attendanceRecord.deleteMany()
     await db.attendanceSession.deleteMany()
     await db.courseEnrollment.deleteMany()
@@ -13,10 +14,11 @@ export async function POST() {
     await db.student.deleteMany()
     await db.department.deleteMany()
 
+    // Hash admin password
     const adminPassword = await bcrypt.hash('Admin123', 10)
 
-    const departments = []
-    const deptData = [
+    // Create departments
+    const departments = [
       { name: 'Computer Science', code: 'CS' },
       { name: 'Office Technology Management', code: 'OTM' },
       { name: 'Banking and Finance', code: 'BF' },
@@ -27,11 +29,11 @@ export async function POST() {
       { name: 'Business Administration', code: 'BA' },
     ]
 
-    for (const dept of deptData) {
-      const department = await db.department.create({ data: dept })
-      departments.push(department)
+    for (const dept of departments) {
+      await db.department.create({ data: dept })
     }
 
+    // Create only the Admin user
     await db.user.create({
       data: {
         email: 'Admin@gmail.com',
@@ -44,9 +46,16 @@ export async function POST() {
     })
 
     return NextResponse.json({
-      message: 'Database seeded successfully',
-      summary: { departments: departments.length, adminCreated: true },
-      credentials: { admin: { email: 'Admin@gmail.com', password: 'Admin123' } },
+      message: 'Database seeded successfully — only admin account created',
+      summary: {
+        departments: 8,
+        students: 0,
+        lecturers: 0,
+        courses: 0,
+      },
+      credentials: {
+        admin: { email: 'Admin@gmail.com', password: 'Admin123' },
+      },
     })
   } catch (error) {
     console.error('Failed to seed database:', error)

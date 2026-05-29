@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     }
 
     // Create NextAuth JWT session token directly (bypasses CSRF issues)
-   const secret = process.env.NEXTAUTH_SECRET || "attendq-super-secret-key-production"
+    const secret = process.env.NEXTAUTH_SECRET || "attendq-super-secret-key-2025-production"
     const maxAge = 24 * 60 * 60 // 24 hours
 
     const token = await encode({
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
       name: "next-auth.session-token",
       value: token,
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false,
       sameSite: "lax",
       maxAge,
       path: "/",
