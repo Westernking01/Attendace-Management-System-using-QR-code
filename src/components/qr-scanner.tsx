@@ -17,8 +17,9 @@ export function QrScanner({ onScan, isActive, onToggle }: QrScannerProps) {
   const scannerDivId = `qr-reader-${uniqueId.replace(/:/g, "")}`
 
   const scannerRef = useRef<Html5Qrcode | null>(null)
-  const isStartingRef = useRef(false)
-  const [status, setStatus] = useState<"idle" | "starting" | "running" | "error">("idle")
+ const isStartingRef = useRef(false)
+const scannedCodesRef = useRef<Set<string>>(new Set()) // track ALL scanned codes to prevent duplicates
+const [status, setStatus] = useState<"idle" | "starting" | "running" | "error">("idle")
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   // Start the scanner
@@ -42,9 +43,13 @@ export function QrScanner({ onScan, isActive, onToggle }: QrScannerProps) {
           aspectRatio: 1.0,
         },
         (decodedText) => {
-          // Successful scan
-          onScan(decodedText)
-        },
+  // Never fire onScan for a QR code that has already been scanned in this session
+  if (scannedCodesRef.current.has(decodedText)) {
+    return
+  }
+  scannedCodesRef.current.add(decodedText)
+  onScan(decodedText)
+},
         () => {
           // QR code scan error (no code found in frame) — ignore, this fires constantly
         }
@@ -87,10 +92,10 @@ export function QrScanner({ onScan, isActive, onToggle }: QrScannerProps) {
     } catch (err) {
       console.error("Error stopping scanner:", err)
     }
-    setStatus("idle")
-    setErrorMsg(null)
-  }
-
+  setStatus("idle")
+setErrorMsg(null)
+scannedCodesRef.current.clear() // reset when scanner stops
+}
   // React to isActive changes
   useEffect(() => {
     if (isActive && status !== "running" && status !== "starting") {
