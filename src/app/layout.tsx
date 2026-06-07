@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/components/auth-provider";
+import { QueryProvider } from "@/components/query-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 const geistSans = Geist({
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Federal Polytechnic Ado Ekiti" }],
   icons: {
-    icon: "/images/fpa-logo.png",
+    icon: "/images/school-logo.png",
   },
 };
 
@@ -45,9 +46,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
         <AuthProvider>
-          <TooltipProvider delayDuration={0}>
-            {children}
-          </TooltipProvider>
+          <QueryProvider>
+            <TooltipProvider delayDuration={0}>
+              {children}
+            </TooltipProvider>
+          </QueryProvider>
         </AuthProvider>
         <Toaster />
       </body>

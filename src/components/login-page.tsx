@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { motion } from "framer-motion"
 import {
   Shield,
@@ -104,19 +105,22 @@ export function LoginPage() {
           transition={{ duration: 0.5 }}
           className="text-center mb-8"
         >
-          <div className="mb-4 relative inline-block">
-            <div className="absolute -inset-3 bg-primary/10 rounded-full blur-xl" />
-            <img
-              src="/images/fpa-logo.png"
-              alt="Federal Polytechnic Ado Ekiti Logo"
-              className="h-20 w-20 sm:h-24 sm:w-24 mx-auto object-contain relative"
+          <div className="mb-6 relative inline-block p-4 rounded-3xl bg-white/40 backdrop-blur-md border border-white/50 shadow-2xl shadow-primary/10">
+            <div className="absolute -inset-1 bg-gradient-to-tr from-primary/20 to-accent/20 rounded-3xl blur-lg -z-10" />
+            <Image
+              src="/images/school-logo.png"
+              alt="School Logo"
+              width={96}
+              height={96}
+              className="object-contain relative drop-shadow-md"
+              priority
             />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
             Attend<span className="text-primary">Q</span>
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Federal Polytechnic, Ado Ekiti
+            Attendance Management System
           </p>
           <p className="text-muted-foreground/70 text-xs mt-0.5">
             QR Code Attendance System
@@ -154,13 +158,14 @@ export function LoginPage() {
                     }
                   `}
                 >
-                  <div className={`h-10 w-10 rounded-full overflow-hidden transition-all duration-300 ${
+                  <div className={`h-10 w-10 relative rounded-full overflow-hidden transition-all duration-300 ${
                     isActive ? "ring-2 ring-primary/30 shadow-lg scale-105" : "opacity-60 hover:opacity-80"
                   }`}>
-                    <img
+                    <Image
                       src={role.avatar}
                       alt={`${role.label} avatar`}
-                      className="h-full w-full object-cover"
+                      fill
+                      className="object-cover"
                     />
                   </div>
                   <span className="text-xs font-medium">{role.label}</span>
@@ -183,11 +188,12 @@ export function LoginPage() {
             <CardContent className="p-4 sm:p-6">
               {/* Role info */}
               <div className="flex items-center gap-3 mb-6">
-                <div className="h-12 w-12 rounded-xl overflow-hidden shadow-md shrink-0">
-                  <img
+                <div className="h-12 w-12 relative rounded-xl overflow-hidden shadow-md shrink-0">
+                  <Image
                     src={currentRole.avatar}
                     alt={`${currentRole.label} avatar`}
-                    className="h-full w-full object-cover"
+                    fill
+                    className="object-cover"
                   />
                 </div>
                 <div>
@@ -243,7 +249,8 @@ export function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors focus:outline-none"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                     >
                       {showPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -283,7 +290,7 @@ export function LoginPage() {
           transition={{ duration: 0.5, delay: 0.4 }}
           className="text-center text-xs text-muted-foreground/70 mt-6"
         >
-          © 2026 Federal Polytechnic, Ado Ekiti — AttendQ
+          © 2026 School Management — AttendQ
         </motion.p>
       </div>
     </div>

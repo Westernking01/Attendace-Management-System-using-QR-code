@@ -423,8 +423,8 @@ export function StudentPortalPanel() {
         </head>
         <body>
           <div class="card">
-            <img src="/images/fpa-logo.png" alt="FPA Logo" class="logo" />
-            <p class="institution">Federal Polytechnic, Ado Ekiti</p>
+            <img src="/images/school-logo.png" alt="School Logo" class="logo" />
+            <p class="institution">Attendance Management System</p>
             <p class="system-name">AttendQ — Student QR Code</p>
             <div class="qr-container">
               <img src="${qrCodeUrl}" alt="QR Code" />

@@ -1,20 +1,32 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Image from "next/image"
+import dynamic from "next/dynamic"
 import { useAppStore, type Page } from "@/lib/store"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { AppHeader } from "@/components/app-header"
 import { LoginPage } from "@/components/login-page"
 import { AnimatePresence, motion } from "framer-motion"
-import { DashboardPanel } from "@/components/panels/dashboard-panel"
-import { StudentsPanel } from "@/components/panels/students-panel"
-import { AttendancePanel } from "@/components/panels/attendance-panel"
-import { ReportsPanel } from "@/components/panels/reports-panel"
-import { StudentPortalPanel } from "@/components/panels/student-portal-panel"
-import { LecturersPanel } from "@/components/panels/lecturers-panel"
-import { CoursesPanel } from "@/components/panels/courses-panel"
 import { Shield, Zap, Loader2 } from "lucide-react"
+
+// Dynamic imports for panels to improve initial load time
+const DashboardPanel = dynamic(() => import("@/components/panels/dashboard-panel").then(mod => mod.DashboardPanel), { loading: () => <PanelLoader /> })
+const StudentsPanel = dynamic(() => import("@/components/panels/students-panel").then(mod => mod.StudentsPanel), { loading: () => <PanelLoader /> })
+const AttendancePanel = dynamic(() => import("@/components/panels/attendance-panel").then(mod => mod.AttendancePanel), { loading: () => <PanelLoader /> })
+const ReportsPanel = dynamic(() => import("@/components/panels/reports-panel").then(mod => mod.ReportsPanel), { loading: () => <PanelLoader /> })
+const StudentPortalPanel = dynamic(() => import("@/components/panels/student-portal-panel").then(mod => mod.StudentPortalPanel), { loading: () => <PanelLoader /> })
+const LecturersPanel = dynamic(() => import("@/components/panels/lecturers-panel").then(mod => mod.LecturersPanel), { loading: () => <PanelLoader /> })
+const CoursesPanel = dynamic(() => import("@/components/panels/courses-panel").then(mod => mod.CoursesPanel), { loading: () => <PanelLoader /> })
+
+function PanelLoader() {
+  return (
+    <div className="h-96 flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-primary/40" />
+    </div>
+  )
+}
 
 export default function Home() {
   const { currentPage, isAuthenticated, user, setUser } = useAppStore()
@@ -43,10 +55,13 @@ export default function Home() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <img
-            src="/images/fpa-logo.png"
-            alt="FPA Logo"
-            className="h-16 w-16 object-contain animate-pulse"
+          <Image
+            src="/images/school-logo.png"
+            alt="School Logo"
+            width={64}
+            height={64}
+            className="object-contain animate-pulse"
+            priority
           />
           <div className="flex items-center gap-2 text-primary">
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -85,8 +100,8 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <img
-                src="/images/fpa-logo.png"
-                alt="FPA"
+                src="/images/school-logo.png"
+                alt="School Logo"
                 className="h-6 w-6 rounded object-contain"
               />
               <span className="text-sm font-semibold text-primary">AttendQ</span>

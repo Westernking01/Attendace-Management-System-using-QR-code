@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Menu, LogOut, Shield, GraduationCap, BookOpen, KeyRound } from "lucide-react"
 import { useAppStore, rolePageTitles } from "@/lib/store"
+import Image from "next/image"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -165,8 +166,13 @@ export function AppHeader() {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl overflow-hidden shrink-0">
-                    <img src={`/images/avatar-${role.toLowerCase()}.png`} alt={user?.name || "User"} className="h-full w-full object-cover" />
+                  <div className="h-10 w-10 relative rounded-xl overflow-hidden shrink-0">
+                    <Image
+                      src={`/images/avatar-${role.toLowerCase()}.png`}
+                      alt={user?.name || "User"}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
                   <div className="flex flex-col space-y-0.5 min-w-0">
                     <p className="text-sm font-medium truncate">{user?.name}</p>

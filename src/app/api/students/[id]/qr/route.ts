@@ -28,7 +28,7 @@ export async function GET(
       errorCorrectionLevel: 'M',
     })
 
-    return new Response(qrImageBuffer, {
+    return new Response(new Uint8Array(qrImageBuffer), {
       headers: {
         'Content-Type': 'image/png',
         'Content-Disposition': `inline; filename="qr-${student.matricNo}.png"`,

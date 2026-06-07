@@ -13,6 +13,7 @@ import {
   Shield,
 } from "lucide-react"
 import { signOut } from "next-auth/react"
+import Image from "next/image"
 import { useAppStore, type Page, type UserRole } from "@/lib/store"
 import { cn } from "@/lib/utils"
 import {
@@ -97,11 +98,13 @@ export function AppSidebar() {
       {/* Brand Header */}
       <SidebarHeader className="bg-sidebar px-4 py-5">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden shadow-lg shadow-primary/20">
-            <img
-              src="/images/fpa-logo.png"
-              alt="FPA Logo"
-              className="h-full w-full object-cover rounded-xl"
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl overflow-hidden bg-white p-1 shadow-md">
+            <Image
+              src="/images/school-logo.png"
+              alt="School Logo"
+              width={36}
+              height={36}
+              className="object-contain"
             />
           </div>
           <div>
@@ -109,7 +112,7 @@ export function AppSidebar() {
               AttendQ
             </h1>
             <p className="text-[11px] text-sidebar-foreground/40 leading-none mt-0.5">
-              Fed. Poly. Ado Ekiti
+              School Management
             </p>
           </div>
         </div>

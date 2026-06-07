@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useStudents, useDepartments } from "@/hooks/use-data"
 import {
   Plus,
   Search,
@@ -103,11 +105,6 @@ const levels = ["ND1", "ND2", "HND1", "HND2"]
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function StudentsPanel() {
-  // Data
-  const [students, setStudents] = useState<Student[]>([])
-  const [departments, setDepartments] = useState<Department[]>([])
-  const [loading, setLoading] = useState(true)
-
   // Filters
   const [searchQuery, setSearchQuery] = useState("")
   const [filterDept, setFilterDept] = useState<string>("all")
@@ -135,35 +132,10 @@ export function StudentsPanel() {
 
   // ── Fetch ────────────────────────────────────────────────────────────
 
-  const fetchStudents = useCallback(async () => {
-    try {
-      const res = await fetch("/api/students")
-      if (res.ok) {
-        const data = await res.json()
-        setStudents(data)
-      }
-    } catch (err) {
-      console.error("Failed to fetch students:", err)
-    }
-  }, [])
-
-  const fetchDepartments = useCallback(async () => {
-    try {
-      const res = await fetch("/api/departments")
-      if (res.ok) {
-        const data = await res.json()
-        setDepartments(data)
-      }
-    } catch (err) {
-      console.error("Failed to fetch departments:", err)
-    }
-  }, [])
-
-  useEffect(() => {
-    Promise.all([fetchStudents(), fetchDepartments()]).finally(() =>
-      setLoading(false)
-    )
-  }, [fetchStudents, fetchDepartments])
+  const queryClient = useQueryClient()
+  const { data: students = [], isLoading: studentsLoading } = useStudents()
+  const { data: departments = [] } = useDepartments()
+  const loading = studentsLoading
 
   // ── Filtering ────────────────────────────────────────────────────────
 
@@ -241,6 +213,7 @@ export function StudentsPanel() {
           const data = await res.json()
           throw new Error(data.error || "Failed to update student")
         }
+        queryClient.invalidateQueries({ queryKey: ["students"] })
         toast.success("Student updated successfully")
       } else {
         const res = await fetch("/api/students", {
@@ -253,6 +226,7 @@ export function StudentsPanel() {
           throw new Error(data.error || "Failed to create student")
         }
         const data = await res.json()
+        queryClient.invalidateQueries({ queryKey: ["students"] })
         toast.success("Student added successfully — login credentials generated!")
 
         // Show generated credentials
@@ -263,7 +237,6 @@ export function StudentsPanel() {
       }
 
       setFormOpen(false)
-      fetchStudents()
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Something went wrong")
     } finally {
@@ -284,10 +257,10 @@ export function StudentsPanel() {
         const data = await res.json()
         throw new Error(data.error || "Failed to delete student")
       }
+      queryClient.invalidateQueries({ queryKey: ["students"] })
       toast.success("Student deleted successfully")
       setDeleteOpen(false)
       setDeleting(null)
-      fetchStudents()
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Something went wrong")
     } finally {
@@ -369,8 +342,8 @@ export function StudentsPanel() {
         </head>
         <body>
           <div class="card">
-            <img src="/images/fpa-logo.png" alt="FPA Logo" class="logo" />
-            <p class="institution">Federal Polytechnic, Ado Ekiti</p>
+            <img src="/images/school-logo.png" alt="School Logo" class="logo" />
+            <p class="institution">Attendance Management System</p>
             <p class="system-name">AttendQ — Student QR Code</p>
             <div class="qr-container">
               <img src="/api/students/${qrStudent.id}/qr" alt="QR Code" />

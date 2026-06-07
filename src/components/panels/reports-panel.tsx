@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useMemo } from "react"
+import { useCourses, useStudents, useReports } from "@/hooks/use-data"
 import { toast } from "sonner"
 import { useAppStore } from "@/lib/store"
 import {
@@ -96,12 +97,6 @@ interface Student {
 
 export function ReportsPanel() {
   const { user } = useAppStore()
-  const [report, setReport] = useState<ReportData | null>(null)
-  const [courses, setCourses] = useState<Course[]>([])
-  const [students, setStudents] = useState<Student[]>([])
-  const [loading, setLoading] = useState(true)
-  const [generating, setGenerating] = useState(false)
-
   // Filters
   const [filterCourseId, setFilterCourseId] = useState<string>("all")
   const [filterStudentId, setFilterStudentId] = useState<string>("all")
@@ -109,111 +104,74 @@ export function ReportsPanel() {
   const [filterDateFrom, setFilterDateFrom] = useState("")
   const [filterDateTo, setFilterDateTo] = useState("")
 
-  // Available levels from students data
-  const levelOrder: Record<string, number> = { ND1: 1, ND2: 2, HND1: 3, HND2: 4 }
-  const availableLevels = [...new Set(students.map(s => s.level))].sort((a, b) => (levelOrder[a] ?? 99) - (levelOrder[b] ?? 99))
-
-  // Filtered students by level (for student dropdown)
-  const filteredStudents = filterLevel && filterLevel !== "all"
-    ? students.filter(s => s.level === filterLevel)
-    : students
-
-  // Pagination
+  // Course breakdown & pagination state
+  const [courseBreakdown, setCourseBreakdown] = useState<{
+    courseId: string
+    courseCode: string
+    courseTitle: string
+    sessionCount: number
+    avgAttendance: number
+  }[]>([])
   const [visibleCount, setVisibleCount] = useState(20)
 
-  // Course breakdown
-  const [courseBreakdown, setCourseBreakdown] = useState<
-    {
-      courseId: string
-      courseCode: string
-      courseTitle: string
-      sessionCount: number
-      avgAttendance: number
-    }[]
-  >([])
+  // React Query Hooks — must be declared before any useMemo that references them
+  const { data: coursesData = [] } = useCourses({
+    studentId: user?.role === "STUDENT" ? user.studentId || undefined : undefined,
+    lecturerId: user?.role === "LECTURER" ? user.lecturerId || undefined : undefined
+  })
+  const courses = coursesData as Course[]
+  const { data: studentsData = [] } = useStudents()
+  const students = studentsData as Student[]
 
-  // Fetch initial data (filtered by role)
-  useEffect(() => {
-    async function fetchInitial() {
-      try {
-        // Build course URL based on role
-        let coursesUrl = "/api/courses"
-        if (user?.role === "STUDENT" && user.studentId) {
-          coursesUrl += `?studentId=${user.studentId}`
-        } else if (user?.role === "LECTURER" && user.lecturerId) {
-          coursesUrl += `?lecturerId=${user.lecturerId}`
-        }
+  // Caching levels with useMemo (depends on `students` above)
+  const levelOrder: Record<string, number> = { ND1: 1, ND2: 2, HND1: 3, HND2: 4 }
+  const availableLevels = useMemo(() =>
+    [...new Set(students.map(s => s.level))].sort((a, b) => (levelOrder[a] ?? 99) - (levelOrder[b] ?? 99))
+  , [students])
 
-        const [cRes, sRes] = await Promise.all([
-          fetch(coursesUrl),
-          fetch("/api/students"),
-        ])
-        if (cRes.ok) setCourses(await cRes.json())
-        if (sRes.ok) setStudents(await sRes.json())
-      } catch {
-        toast.error("Failed to load filter options")
+  const filteredStudents = useMemo(() =>
+    filterLevel && filterLevel !== "all" ? students.filter(s => s.level === filterLevel) : students
+  , [students, filterLevel])
+
+  const reportParams = useMemo(() => {
+    const p: any = {}
+    if (filterCourseId !== "all") p.courseId = filterCourseId
+    if (filterStudentId !== "all") p.studentId = filterStudentId
+    if (filterLevel !== "all") p.level = filterLevel
+    if (filterDateFrom) p.dateFrom = filterDateFrom
+    if (filterDateTo) p.dateTo = filterDateTo
+    if (user?.role === "STUDENT" && user.studentId) p.studentId = user.studentId
+    return p
+  }, [filterCourseId, filterStudentId, filterLevel, filterDateFrom, filterDateTo, user])
+
+  const { data: rawReport, isLoading: reportLoading, isFetching: reportFetching, refetch: fetchReport } = useReports(reportParams)
+
+  // Process report for lecturer role
+  const report = useMemo(() => {
+    if (!rawReport) return null
+    if (user?.role === "LECTURER") {
+      const lecturerCourseIds = new Set(courses.map(c => c.id))
+      const filteredRecords = rawReport.records.filter((r: ReportRecord) => lecturerCourseIds.has(r.session.course.id))
+      const totalSessions = new Set(filteredRecords.map((r: ReportRecord) => r.sessionId)).size
+      return {
+        ...rawReport,
+        records: filteredRecords,
+        totalPresent: filteredRecords.length,
+        totalSessions,
+        averageAttendance: totalSessions > 0 ? Math.round((filteredRecords.length / totalSessions) * 100) / 100 : 0
       }
     }
-    fetchInitial()
-  }, [])
+    return rawReport
+  }, [rawReport, user?.role, courses])
 
-  // Fetch report
-  const fetchReport = useCallback(async () => {
-    setGenerating(true)
-    try {
-      const params = new URLSearchParams()
-      if (filterCourseId && filterCourseId !== "all")
-        params.set("courseId", filterCourseId)
-      if (filterStudentId && filterStudentId !== "all")
-        params.set("studentId", filterStudentId)
-      if (filterLevel && filterLevel !== "all")
-        params.set("level", filterLevel)
-      if (filterDateFrom) params.set("dateFrom", filterDateFrom)
-      if (filterDateTo) params.set("dateTo", filterDateTo)
-
-      // Auto-filter by role
-      if (user?.role === "STUDENT" && user.studentId) {
-        params.set("studentId", user.studentId)
-      } else if (user?.role === "LECTURER" && user.lecturerId) {
-        // Lecturers see reports for their courses only
-        // We'll filter client-side after fetching
-      }
-
-      const res = await fetch(`/api/reports?${params.toString()}`)
-      if (res.ok) {
-        const data = await res.json()
-
-        // For lecturers, filter records to only their courses
-        if (user?.role === "LECTURER" && user.lecturerId) {
-          const lecturerCourseIds = new Set(courses.map(c => c.id))
-          data.records = data.records.filter((r: ReportRecord) =>
-            lecturerCourseIds.has(r.session.course.id)
-          )
-          // Recalculate totals
-          data.totalPresent = data.records.length
-          data.totalSessions = new Set(data.records.map((r: ReportRecord) => r.sessionId)).size
-          data.averageAttendance = data.totalSessions > 0
-            ? Math.round((data.totalPresent / data.totalSessions) * 100) / 100
-            : 0
-        }
-
-        setReport(data)
-        setVisibleCount(20)
-        buildCourseBreakdown(data.records)
-      } else {
-        toast.error("Failed to generate report")
-      }
-    } catch {
-      toast.error("Failed to generate report")
-    } finally {
-      setGenerating(false)
-      setLoading(false)
-    }
-  }, [filterCourseId, filterStudentId, filterLevel, filterDateFrom, filterDateTo, user?.role, user?.studentId, user?.lecturerId, courses])
+  const loading = reportLoading
+  const generating = reportFetching
 
   useEffect(() => {
-    fetchReport()
-  }, [])
+    if (report?.records) {
+      buildCourseBreakdown(report.records)
+    }
+  }, [report?.records])
 
   const buildCourseBreakdown = (records: ReportRecord[]) => {
     const courseMap = new Map<
@@ -449,7 +407,7 @@ export function ReportsPanel() {
             <div className="flex items-end">
               <Button
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-9 sm:h-10 text-xs sm:text-sm"
-                onClick={fetchReport}
+                onClick={() => fetchReport()}
                 disabled={generating}
               >
                 {generating ? (

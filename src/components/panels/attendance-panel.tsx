@@ -958,7 +958,7 @@ export function AttendancePanel() {
             {/* Already-marked students list */}
             {scannerSessionId && (() => {
               const session = sessions.find((s) => s.id === scannerSessionId)
-              const detailRecords = detailSession?.id === scannerSessionId ? detailSession.records : []
+              const detailRecords = (detailSession?.id === scannerSessionId ? detailSession?.records : []) ?? []
               if (!session || detailRecords.length === 0) return null
               return (
                 <div className="border-t pt-3 sm:pt-4">
