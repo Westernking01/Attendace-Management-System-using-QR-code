@@ -37,7 +37,6 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        // Return user object with role info
         return {
           id: user.id,
           email: user.email,
@@ -78,6 +77,17 @@ export const authOptions: NextAuthOptions = {
     maxAge: 24 * 60 * 60, // 24 hours
   },
   secret: process.env.NEXTAUTH_SECRET,
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
 }
 
 // Type augmentation for next-auth
